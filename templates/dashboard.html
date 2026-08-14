@@ -1,0 +1,2043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuralTrade AI - Stock Price Prediction Dashboard</title>
+    <!-- =========================================================
+         STYLES
+         ========================================================= -->
+    <style>
+        /* ---------- Reset & Base ---------- */
+        html{
+            scroll-behavior:smooth;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #1a1a1a;
+            line-height: 1.5;
+            padding-top: 70px;
+        }
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+        }
+        /* ---------- Color Utilities ---------- */
+        .text-green { color: #16a34a; }
+        .text-red   { color: #dc2626; }
+        .text-blue  { color: #2563eb; }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-buy     { background: #dcfce7; color: #16a34a; }
+        .badge-sell    { background: #fee2e2; color: #dc2626; }
+        .badge-hold    { background: #fef3c7; color: #b45309; }
+        .badge-bull    { background: #dcfce7; color: #16a34a; }
+        .badge-bear    { background: #fee2e2; color: #dc2626; }
+        .badge-neutral { background: #abc0ea; color: #314e7d; }
+        /* ---------- Navigation Bar ---------- */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            z-index: 1000;
+        }
+        .navbar .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2563eb;
+        }
+        .navbar .nav-links {
+            display: flex;
+            gap: 24px;
+            list-style: none;
+        }
+        .navbar .nav-links li {
+            font-size: 14px;
+            font-weight: 500;
+            color: #4b5563;
+            cursor: pointer;
+            padding: 8px 4px;
+            transition: color 0.2s ease;
+        }
+        .navbar .nav-links li:hover,
+        .navbar .nav-links li.active {
+            color: #2563eb;
+        }
+        .navbar .nav-icons {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        .nav-icon i{
+            font-size:18px;
+        }
+        .nav-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: background 0.2s ease;
+        }
+        .nav-icon:hover {
+            background: #e5e7eb;
+        }
+        /* ---------- Layout ---------- */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        .page-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .page-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .page-header p {
+            color: #6b7280;
+            font-size: 15px;
+        }
+        /* ---------- Cards ---------- */
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            margin-bottom: 24px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        /* ---------- Search Section ---------- */
+        .search-card {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .search-card input,
+        .search-card select {
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            min-width: 180px;
+            outline: none;
+            transition: border 0.2s ease;
+        }
+        .search-card input:focus,
+        .search-card select:focus {
+            border-color: #2563eb;
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .btn-primary {
+            background: #2563eb;
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+        .error-box{
+            background:#fee2e2;
+            color:#b91c1c;
+            border:1px solid #fca5a5;
+            border-left:5px solid #dc2626;
+            border-radius:8px;
+            padding:12px 16px;
+            margin:15px 0;
+            font-size:14px;
+            font-weight:600;
+        }
+        /* ---------- Grids ---------- */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        .grid-6 {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 16px;
+        }
+        @media (max-width: 900px) {
+            .grid-2,
+            .grid-3,
+            .grid-6 {
+                grid-template-columns: 1fr;
+            }
+            .navbar .nav-links { display: none; }
+        }
+        /* ---------- Stock Info ---------- */
+        .info-header {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .info-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .info-header .symbol {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .info-price {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .info-change {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .info-item {
+            background: #f9fafb;
+            padding: 10px 12px;
+            border-radius: 8px;
+        }
+        .info-item .label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 2px;
+        }
+        .info-item .value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        /* ---------- Prediction Card ---------- */
+        .prediction-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2563eb;
+            margin-bottom: 4px;
+        }
+        .prediction-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .prediction-stat:last-child { border-bottom: none; }
+        /* ---------- Chart ---------- */
+        .chart-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .chart-container{
+            position: relative;
+            width: 100%;
+            height: 400px;
+        }
+        .chart-btn {
+            padding: 6px 14px;
+            border-radius: 6px;
+            background: #f3f4f6;
+            color: #4b5563;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .chart-btn:hover {
+            background: #e5e7eb;
+        }
+        .chart-btn.active {
+            background: #2563eb !important;
+            color: #ffffff !important;
+        }
+        #priceChart {
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
+        }
+        /* ---------- Indicator Cards ---------- */
+        .indicator {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .indicator .name {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        .indicator .val {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        /* ---------- News List ---------- */
+        .news-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 14px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .news-item:last-child { border-bottom: none; }
+        .news-content .headline {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .news-content .meta {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .news-sentiment {
+            text-align: right;
+            min-width: 100px;
+        }
+        .news-sentiment .score {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        .sentiment-summary {
+            margin-top: 16px;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        /* ---------- AI Insights ---------- */
+
+        
+
+        /* ---------- Tables ---------- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        thead {
+            background: #f9fafb;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        th {
+            font-weight: 600;
+            font-size: 13px;
+            color: #4b5563;
+        }
+        tbody tr {
+            transition: background 0.15s ease;
+        }
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+        .remove-btn {
+            background: transparent;
+            color: #dc2626;
+            font-size: 12px;
+            padding: 4px 8px;
+        }
+        /* ---------- Footer ---------- */
+        footer {
+            background: #1f2937;
+            color: #d1d5db;
+            padding: 40px 24px 20px;
+            margin-top: 40px;
+        }
+        .footer-grid {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 32px;
+        }
+        .footer-grid h4 {
+            color: #ffffff;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .footer-grid ul {
+            list-style: none;
+            font-size: 13px;
+        }
+        .footer-grid li {
+            padding: 4px 0;
+            cursor: pointer;
+        }
+        .footer-grid li:hover {
+            color: #ffffff;
+        }
+        .copyright {
+            text-align: center;
+            font-size: 13px;
+            color: #9ca3af;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #374151;
+        }
+        @media (max-width: 700px) {
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+        /* ---------- Notification ---------- */
+        .notification {
+            position: fixed;
+            top: 90px;
+            right: 24px;
+            background: #1f2937;
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            z-index: 2000;
+        }
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* ---------- Loader ---------- */
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #dbeafe;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        .loader.show { display: inline-block; }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .auth-modal{
+
+    display:none;
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(0,0,0,.45);
+
+    z-index:9999;
+
+    justify-content:center;
+
+    align-items:flex-start;
+
+    padding-top:80px;
+
+}
+
+.auth-box{
+
+    width:430px;
+
+    background:white;
+
+    border-radius:15px;
+
+    padding:28px;
+
+    box-shadow:0 10px 35px rgba(0,0,0,.25);
+
+    animation:popup .25s ease;
+
+}
+
+.auth-box h2{
+
+    text-align:center;
+
+    margin-bottom:8px;
+
+}
+
+.auth-box p{
+
+    text-align:center;
+
+    color:#777;
+
+    margin-bottom:20px;
+
+}
+
+.auth-box input{
+
+    width:100%;
+
+    padding:12px;
+
+    margin:10px 0;
+
+    border:1px solid #ddd;
+
+    border-radius:8px;
+
+    font-size:15px;
+
+}
+
+.auth-btn{
+
+    width:100%;
+
+    padding:12px;
+
+    margin-top:10px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:#2563eb;
+
+    color:white;
+
+    font-size:16px;
+
+    cursor:pointer;
+
+}
+
+.auth-btn:hover{
+
+    background:#1d4ed8;
+
+}
+
+.close-btn{
+
+    float:right;
+
+    font-size:26px;
+
+    cursor:pointer;
+
+}
+
+@keyframes popup{
+
+from{
+
+transform:translateY(-20px);
+
+opacity:0;
+
+}
+
+to{
+
+transform:translateY(0);
+
+opacity:1;
+
+}
+
+}
+
+/* ---------- Profile Popup ---------- */
+
+.profile-menu {
+    position: fixed;
+    top: 78px;
+    right: 28px;
+    width: 280px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    padding: 16px;
+    z-index: 3000;
+
+    display: none;
+}
+
+.profile-menu.show {
+    display: block;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.profile-big-icon {
+    font-size: 40px;
+    color: #2563eb;
+}
+
+.profile-header h3 {
+    font-size: 15px;
+    margin: 0 0 3px;
+}
+
+.profile-header p {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.profile-divider {
+    height: 1px;
+    background: #f3f4f6;
+    margin: 14px 0;
+}
+
+.profile-action {
+    width: 100%;
+    background: #f9fafb;
+    padding: 9px 10px;
+    border-radius: 8px;
+    margin-top: 7px;
+    text-align: left;
+    font-size: 13px;
+    color: #374151;
+}
+
+.profile-action:hover {
+    background: #f3f4f6;
+}
+
+.profile-action i {
+    margin-right: 8px;
+}
+
+<!--Error Section-->
+
+.auth-message {
+    margin-top: 12px;
+    padding: 9px 12px;
+    border-radius: 7px;
+    font-size: 13px;
+    text-align: center;
+    display: none;
+}
+
+.auth-message.error {
+    display: block;
+    color: #dc2626;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+}
+
+.auth-message.success {
+    display: block;
+    color: #16a34a;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+}
+
+/* ---------- Notification Popup ---------- */
+
+.notification-popup {
+    display: none;
+    position: fixed;
+    top: 82px;
+    right: 32px;
+    width: 320px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e5e7eb;
+    z-index: 3000;
+    overflow: hidden;
+}
+
+.notification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 15px;
+}
+
+.notification-close {
+    background: transparent;
+    color: #6b7280;
+    font-size: 22px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 2px 5px;
+}
+
+.notification-close:hover {
+    color: #dbc7c7;
+}
+
+.notification-body {
+    padding: 8px 0;
+}
+
+.notification-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 16px;
+    font-size: 13px;
+    color: #374151;
+}
+
+.notification-item:hover {
+    background: #f9fafb;
+}
+
+.notification-item i {
+    font-size: 15px;
+    min-width: 18px;
+}
+
+    </style>
+</head>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<!-- LOGIN / SIGN UP MODAL -->
+
+<div id="authModal" class="auth-modal">
+
+    <div class="auth-box">
+
+        <span class="close-btn" onclick="closeAuthModal()">&times;</span>
+
+        <h2 id="authTitle">Sign In</h2>
+        <p id="authSubtitle">Access your AI Stock Dashboard</p>
+
+<form id="loginForm">
+
+    <input
+        type="email"
+        name="email"
+        placeholder="Email"
+        required>
+
+    <input
+        type="password"
+        name="password"
+        placeholder="Password"
+        required>
+
+    <button class="auth-btn">
+        Sign In
+    </button>
+
+    <div id="loginMessage" class="auth-message"></div>
+
+</form>
+
+<p style="text-align:center;margin-top:15px;" id="loginText">
+
+    Don't have an account?
+
+    <a href="#"
+       onclick="showSignup()">
+
+       Sign Up
+
+    </a>
+
+</p>
+        <form id="signupForm" style="display:none;">
+
+    <input
+        type="text"
+        name="fullname"
+        placeholder="Full Name"
+        required>
+
+    <input
+        type="email"
+        name="email"
+        placeholder="Email"
+        required>
+
+    <input
+        type="password"
+        name="password"
+        placeholder="Password"
+        required>
+
+    <input
+        type="password"
+        name="confirm"
+        placeholder="Confirm Password"
+        required>
+
+    <button class="auth-btn">
+
+        Create Account
+
+    </button>
+
+    <div id="signupMessage" class="auth-message"></div>
+
+</form>
+
+<p
+id="signupText"
+
+style="display:none;text-align:center;margin-top:15px;">
+
+Already have an account?
+
+<a href="#"
+
+onclick="showLogin()">
+
+Login
+
+</a>
+
+</p>
+
+    </div>
+
+</div>
+
+<!--Body-->
+
+<body>
+
+
+    <!-- =========================================================
+         NAVIGATION BAR
+         ========================================================= -->
+    <nav class="navbar">
+        <div class="logo">NeuralTrade AI</div>
+        <ul class="nav-links">
+            <li class="active"><a href="#dashboard">Dashboard</a></li>
+            <li><a href="#news-analysis">News Analysis</a></li>
+            <li><a href="#technical-analysis">Technical Analysis</a></li>
+            <li><a href="#historical-data">Historical Data</a></li>
+            <li><a href="#ai-insights">AI Insights</a></li>
+            <li><a href="#about">About</a></li>
+        </ul>
+
+        <div class="nav-icons">
+
+    <div class="nav-icon" title="Search" onclick="focusSearch()">
+        <i class="bi bi-search"></i>
+    </div>
+
+    <div class="nav-icon" title="Notifications" onclick="showNotification()">
+        <i class="bi bi-bell"></i>
+    </div>
+
+    <div class="nav-icon" title="Profile" onclick="toggleProfileMenu()">
+        <i class="bi bi-person-circle"></i>
+    </div>
+
+        </div>
+    </nav>
+
+    <!-- Notification Popup -->
+<div id="notificationPopup" class="notification-popup">
+
+    <div class="notification-header">
+        <strong>Notifications</strong>
+
+        <button type="button"
+                class="notification-close"
+                onclick="closeNotification()">
+            &times;
+        </button>
+    </div>
+
+    <div class="notification-body">
+
+        <div class="notification-item">
+            <i class="bi bi-check-circle-fill text-green"></i>
+            <span>Dashboard is up to date.</span>
+        </div>
+
+        <div class="notification-item">
+            <i class="bi bi-robot text-blue"></i>
+            <span>AI model loaded successfully.</span>
+        </div>
+
+        <div class="notification-item">
+            <i class="bi bi-bar-chart-fill text-blue"></i>
+            <span>Latest market data fetched.</span>
+        </div>
+
+        <div class="notification-item">
+            <i class="bi bi-bell-slash text-blue"></i>
+            <span>No new alerts.</span>
+        </div>
+
+    </div>
+
+</div>
+
+    <!-- PROFILE POPUP -->
+<div id="profileMenu" class="profile-menu">
+
+    {% if session.get("user") %}
+
+        <div class="profile-header">
+
+            <i class="bi bi-person-circle profile-big-icon"></i>
+            <div>
+                <h3>{{ session["user"]["fullname"] }}</h3>
+                <p>{{ session["user"]["email"] }}</p>
+            </div>
+        </div>
+
+        <div class="profile-divider"></div>
+
+        <button style="background-color: #e74c3c; color: #ffffff;" class="profile-action" onclick="logoutUser()">
+            <i class="bi bi-box-arrow-right"></i>
+            Logout
+        </button>
+
+    {% else %}
+
+        <div class="profile-header">
+            <i class="bi bi-person-circle profile-big-icon"></i>
+
+            <div>
+                <h3>Welcome</h3>
+                <p>Please sign in to view your profile.</p>
+            </div>
+        </div>
+
+        <div class="profile-divider"></div>
+
+        <button style="background-color: #2563eb; color: #ffffff;" class="profile-action" onclick="openAuthModal(); showLogin(); closeProfileMenu();">
+            <i class="bi bi-box-arrow-in-right"></i>
+            Sign In
+        </button>
+
+        <button class="profile-action" onclick="openAuthModal(); showSignup(); closeProfileMenu();">
+            <i class="bi bi-person-plus"></i>
+            Create Account
+        </button>
+
+    {% endif %}
+
+</div>
+    
+
+
+    <!-- =========================================================
+         MAIN CONTENT
+         ========================================================= -->
+    <div class="container">
+        <!-- Page Header -->
+        <header class="page-header" id="dashboard">
+            <h1>Stock Price Prediction Dashboard</h1>
+            <p>AI-powered stock prediction using historical market data and news sentiment analysis.</p>
+        </header>
+        
+        {% if error %}
+
+    <div class="error-box">
+
+         ❌ {{ error }}
+
+    </div>
+
+                {% endif %}
+        <!-- Search Section -->
+        <div class="card">
+            <div class="search-card">
+                
+                <form action="/" method="POST">
+
+                <input type="text" name="symbol" id="stockSearch" placeholder="Enter Stock Symbol (e.g. AAPL)" value="{{symbol}}" />
+                <select id="periodSelect" name="period">
+                    <option value="1d" {% if period == "1d" %}selected{% endif %}>1 Day</option>
+                    <option value="5d" {% if period == "5d" %}selected{% endif %}>1 Week</option>
+                    <option value="1mo" {% if period == "1mo" %}selected{% endif %}>1 Month</option>
+                    <option value="6mo" {% if period == "6mo" %}selected{% endif %}>6 Months</option>
+                    <option value="1y" {% if period == "1y" %}selected{% endif %}>1 Year</option>
+                </select>
+                <button class="btn btn-primary">
+                    Analyze
+                    <span class="loader" id="analyzeLoader"></span>
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="window.location='/'">Reset</button>
+
+                </form>
+
+                
+
+                
+
+            </div>
+        </div>
+        <!-- Stock Info + Prediction -->
+        <div class="grid-2">
+            <!-- Current Stock Information -->
+            <div class="card" id="technical-analysis">
+                <div class="info-header">
+
+                    {% if stock %}
+
+                    <h2 id="companyName">{{ stock.company }}</h2>
+                    <span class="symbol" id="companySymbol">{{ stock.symbol }}</span>
+                </div>
+                <div class="info-price" id="currentPrice">${{ stock.current_price }}</div>
+                <div class="info-change text-green" id="priceChange">+$2.34 (+1.28%)</div>
+                <div class="info-grid">
+                    <div class="info-item"><div class="label">Open</div><div class="value" id="openPrice">${{ stock.open }}</div></div>
+                    <div class="info-item"><div class="label">High</div><div class="value" id="highPrice">${{ stock.high }}</div></div>
+                    <div class="info-item"><div class="label">Low</div><div class="value" id="lowPrice">${{ stock.low }}</div></div>
+                    <div class="info-item"><div class="label">closePrice</div><div class="value" id="closePrice">${{ stock.close }}</div></div>
+                    <div class="info-item"><div class="label">Volume</div><div class="value" id="volume">{{ stock.volume }}M</div></div>
+                    <div class="info-item"><div class="label">Market Cap</div><div class="value" id="marketCap">${{ stock.market_cap }}T</div></div>
+
+                    {% endif %}
+
+                </div>
+            </div>
+            <!-- AI Prediction -->
+            <div class="card">
+                <div class="card-title">AI Prediction</div>
+                <div style="font-size: 12px; color: #6b7280;">Predicted Price</div>
+                <div class="prediction-value" id="predictedPrice">${{ predicted_price }}</div>
+                <div class="prediction-stat">
+                    <span>Expected Change</span>
+                    <span class="text-green" id="expectedChange">{{ expected_change }}%</span>
+                </div>
+                <div class="prediction-stat">
+                    <span>Prediction Confidence</span>
+                    <span id="confidence">{{ confidence }}%</span>
+                </div>
+                <div class="prediction-stat">
+                    <span>Recommendation</span>
+                    <span class="badge badge-buy" id="recommendation">{{ recommendation }}</span>
+                </div>
+                <div class="prediction-stat">
+                    <span>Target Horizon</span>
+                    <span id="horizon">{{ target_horizon }}</span>
+                </div>
+                <div class="prediction-stat">
+                    <span>Trend</span>
+                    <span class="val">{{ trend }}</span>
+             </div>
+             
+            </div>
+        </div>
+        <!-- Historical Price Chart -->
+ 
+        <form action="/" method="POST">
+
+        <div class="card" id="historical-data">
+            <div class="card-title">Historical Price Chart</div>
+            <input type="hidden" name="symbol" value="{{ symbol }}">
+            <div class="chart-controls">
+                <button type="submit" name="period" class="chart-btn {% if period == "1d" %}active{% endif %}" value="1d">1 Day</button>
+                <button type="submit" name="period" class="chart-btn {% if period == "5d" %}active{% endif %}" value="5d">1 Week</button>
+                <button type="submit" name="period" class="chart-btn {% if period == "1mo" %}active{% endif %}" value="1mo">1 Month</button>
+                <button type="submit" name="period" class="chart-btn {% if period == "6mo" %}active{% endif %}" value="6mo">6 Months</button>
+                <button type="submit" name="period" class="chart-btn {% if period == "1y" %}active{% endif %}" value="1y">1 Year</button>
+            </div>
+
+            </form>
+
+            <div class="chart-container">
+                <canvas id="priceChart"></canvas>
+            </div>
+            
+        </div>
+        <!-- Technical Indicators -->
+        <div class="card">
+            <div class="card-title">Technical Indicators</div>
+            <div class="grid-6" id="indicatorsGrid">
+
+    <div class="indicator">
+        <div class="name">RSI</div>
+        <div class="val">{{ rsi }}</div>
+       <span class="badge {% if rsi_status == 'Bullish' %}badge-bull{% elif rsi_status == 'Bearish' %}badge-bear{% else %}badge-neutral{% endif %}">
+    {{ rsi_status }}
+</span>
+    </div>
+
+    <div class="indicator">
+        <div class="name">MACD</div>
+        <div class="val">{{ macd }}</div>
+        <span class="badge {% if macd_status == 'Bullish' %}badge-bull{% elif macd_status == 'Bearish' %}badge-bear{% else %}badge-neutral{% endif %}">
+    {{ macd_status }}
+</span>
+    </div>
+
+    <div class="indicator">
+        <div class="name">MA 20</div>
+        <div class="val">{{ ma20 }}</div>
+        <span class="badge {% if ma20_status == 'Bullish' %}badge-bull{% elif ma20_status == 'Bearish' %}badge-bear{% else %}badge-neutral{% endif %}">
+    {{ ma20_status }}
+</span>
+    </div>
+
+    <div class="indicator">
+        <div class="name">MA 50</div>
+        <div class="val">{{ ma50 }}</div>
+       <span class="badge {% if ma50_status == 'Bullish' %}badge-bull{% elif ma50_status == 'Bearish' %}badge-bear{% else %}badge-neutral{% endif %}">
+    {{ ma50_status }}
+</span>
+    </div>
+
+    <div class="indicator">
+        <div class="name">MA 200</div>
+        <div class="val">{{ ma200 }}</div>
+        <span class="badge {% if ma200_status == 'Bullish' %}badge-bull{% elif ma200_status == 'Bearish' %}badge-bear{% else %}badge-neutral{% endif %}">
+    {{ ma200_status }}
+</span>
+    </div>
+
+    <div class="indicator">
+        <div class="name">Bollinger</div>
+        <div class="val">
+            {{ bb_upper }} / {{ bb_lower }}
+        </div>
+        <span class="badge {% if bb_status == 'Bullish' %}badge-bull{% elif bb_status == 'Bearish' %}badge-bear{% else %}badge-neutral{% endif %}">
+    {{ bb_status }}
+</span>
+    </div>
+            </div>
+        </div>
+
+        <!-- News Sentiment + AI Insights -->
+<div class="grid-2">
+
+    <!-- ================= LEFT : NEWS ================= -->
+    <div class="card" id="news-analysis">
+
+        <div class="card-title">
+            News Sentiment Analysis
+        </div>
+
+        <div id="newsList">
+
+            {% for item in news %}
+
+            <div class="news-item">
+
+                <div class="news-content">
+
+                    <div class="headline">
+                        <a href="{{ item.link }}" target="_blank">
+                            {{ item.title }}
+                        </a>
+                    </div>
+
+                    <div class="meta">
+                        {{ item.source }}
+                        •
+                        {{ item.date }}
+                    </div>
+
+                </div>
+
+                <div class="news-sentiment">
+
+                    <span class="badge
+                    {% if item.sentiment == 'Positive' %}
+                        badge-bull
+                    {% elif item.sentiment == 'Negative' %}
+                        badge-bear
+                    {% else %}
+                        badge-neutral
+                    {% endif %}
+                    ">
+                        {{ item.sentiment }}
+                    </span>
+
+                    <div class="score">
+                        Score : {{ item.score }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        <div class="sentiment-summary">
+
+            Overall Sentiment :
+
+            <strong class="
+            {% if average_score > 0.05 %}
+                text-green
+            {% elif average_score < -0.05 %}
+                text-red
+            {% else %}
+                text-blue
+            {% endif %}
+            ">
+
+            {% if average_score > 0.05 %}
+                Positive
+            {% elif average_score < -0.05 %}
+                Negative
+            {% else %}
+                Neutral
+            {% endif %}
+
+            </strong>
+
+            • Score : {{ average_score }}
+
+        </div>
+
+    </div>
+
+    <!-- ================= RIGHT : AI ================= -->
+
+    <div class="card" id="ai-insights">
+
+        <div class="card-title">
+            AI Insights
+        </div>
+
+        <div class="grid-3">
+
+            {% for item in insights %}
+
+            <div class="indicator">
+
+                <div class="name">
+                    {{ item.label }}
+                </div>
+
+                <div class="val">
+                    {{ item.value }}
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        <br>
+
+        <div class="card-title">
+            News Sentiment Summary
+        </div>
+
+        <div class="grid-2">
+
+            <div class="indicator">
+
+                <div class="name">
+                    Positive
+                </div>
+
+                <div class="val text-green">
+                    {{ positive }}
+                </div>
+
+            </div>
+
+            <div class="indicator">
+
+                <div class="name">
+                    Neutral
+                </div>
+
+                <div class="val text-blue">
+                    {{ neutral }}
+                </div>
+
+            </div>
+
+            <div class="indicator">
+
+                <div class="name">
+                    Negative
+                </div>
+
+                <div class="val text-red">
+                    {{ negative }}
+                </div>
+
+            </div>
+
+            <div class="indicator">
+
+                <div class="name">
+                    Average Score
+                </div>
+
+                <div class="val">
+                    {{ average_score }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+            
+    
+
+        
+       
+            
+        <!-- Watchlist -->
+        <div class="card">
+            <div class="card-title">
+                Watchlist
+                <button class="btn btn-primary" style="padding: 6px 14px; font-size: 13px;" onclick="addToWatchlist()">+ Add</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Company</th>
+                        <th>Symbol</th>
+                        <th>Price</th>
+                        <th>AI Prediction</th>
+                        <th>Expected</th>
+                        <th>Recommendation</th>
+                        <th>Confidence</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="watchlistBody">
+                    
+                    {% for stock in watchlist %}
+
+            <tr>
+
+                <td><strong>{{ stock.company }}</strong></td>
+
+                <td>{{ stock.symbol }}</td>
+
+                <td>${{ "%.2f"|format(stock.price) }}</td>
+
+                <td>{{ stock.prediction }}</td>
+
+                <td class="{% if stock.change > 0 %}text-green{% elif stock.change < 0 %}text-red{% else %}text-blue{% endif %}">
+                    {{ stock.change }}%
+                </td>
+
+                <td>
+                    <span class="badge
+                    {% if stock.recommendation == 'BUY' %}
+                        badge-buy
+                    {% elif stock.recommendation == 'SELL' %}
+                        badge-sell
+                    {% else %}
+                        badge-hold
+                    {% endif %} ">
+                        {{ stock.recommendation }}%
+                    </span>
+                </td>
+
+                <td>
+                    {{ stock.confidence }}
+                </td>
+
+            </tr>
+
+            {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+        <!-- Recent Predictions -->
+        <div class="card">
+            <div class="card-title">Recent Predictions</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Company</th>
+                        <th>Current Price</th>
+                        <th>Predicted Price</th>
+                        <th>Recommendation</th>
+                        <th>Confidence</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+{% for item in recent_predictions %}
+
+<tr>
+
+    <td>{{ item.company }}</td>
+
+    <td>${{ "%.2f"|format(item.current_price) }}</td>
+
+    <td>${{ "%.2f"|format(item.predicted_price) }}</td>
+
+    <td>
+
+        <span class="badge
+
+        {% if item.recommendation=="BUY" %}
+            badge-buy
+        {% elif item.recommendation=="SELL" %}
+            badge-sell
+        {% else %}
+            badge-hold
+        {% endif %}
+
+        ">
+
+            {{ item.recommendation }}
+
+        </span>
+
+    </td>
+
+    <td>{{ item.confidence }}%</td>
+
+    <td>{{ item.date }}</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+            </table>
+        </div>
+    </div>
+    <!-- =========================================================
+         FOOTER
+         ========================================================= -->
+    <footer>
+        <div class="footer-grid" id="about">
+            <div>
+                <h4>About Project</h4>
+                <p style="font-size: 13px;">NeuralTrade AI is a stock prediction dashboard powered by machine learning and news sentiment analysis.</p>
+            </div>
+            <div>
+                <h4>Technologies</h4>
+                <ul>
+                    <li>Python & Flask</li>
+                    <li>Machine Learning</li>
+                    <li>HTML / CSS / JS</li>
+                    <li>REST APIs</li>
+                </ul>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a>Dashboard</a></li>
+                    <li>Documentation</li>
+                    <li>API Reference</li>
+                    <li>Support</li>
+                </ul>
+            </div>
+            <div>
+                <h4>Contact</h4>
+                <ul>
+                    <li> <a href="">GitHub</a></li>
+                    <li>Email: 8ryansaw@gmail.com</li>
+                    <li>Twitter</li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">© 2026 NeuralTrade AI. All rights reserved.</div>
+    </footer>
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+    <!-- =========================================================
+         SCRIPTS
+         ========================================================= -->
+         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+
+        const dates = {{ dates|tojson }};
+        const prices = {{ prices|tojson }};
+
+        /* ---------- Sample Data ---------- */
+        const stockData = {
+            company: 'Apple Inc.',
+            symbol: 'NASDAQ: AAPL',
+            currentPrice: 185.24,
+            change: 2.34,
+            changePercent: 1.28
+        };
+        const chartData = {
+            '1d': [184.1, 184.3, 184.8, 185.0, 184.6, 184.9, 185.2, 185.4, 185.1, 185.24],
+            '1w': [182.5, 183.1, 183.9, 184.2, 184.7, 185.0, 185.24],
+            '1m': [178.2, 179.5, 180.1, 181.4, 182.0, 181.6, 182.8, 183.5, 184.1, 184.8, 185.0, 185.24],
+            '6m': [165, 168, 170, 172, 169, 174, 178, 181, 179, 183, 184, 185.24],
+            '1y': [150, 155, 160, 158, 162, 167, 170, 174, 172, 178, 182, 185.24]
+        };
+        /* 
+        const indicators = [
+            { name: 'RSI',       value: '62.4',  status: 'Bullish', badge: 'badge-bull' },
+            { name: 'MACD',      value: '1.28',  status: 'Bullish', badge: 'badge-bull' },
+            { name: 'MA 20',     value: '182.5', status: 'Bullish', badge: 'badge-bull' },
+            { name: 'MA 50',     value: '178.3', status: 'Neutral', badge: 'badge-neutral' },
+            { name: 'MA 200',    value: '168.7', status: 'Bullish', badge: 'badge-bull' },
+            { name: 'Bollinger', value: 'Upper', status: 'Bearish', badge: 'badge-bear' }
+        ]; 
+        const newsItems = [
+            { headline: 'Apple unveils new AI features for iPhone lineup',      source: 'Reuters',     time: '2h ago', sentiment: 'Positive', badge: 'badge-bull',    score: 0.82 },
+            { headline: 'Analysts raise price targets ahead of earnings',       source: 'Bloomberg',   time: '4h ago', sentiment: 'Positive', badge: 'badge-bull',    score: 0.74 },
+            { headline: 'Supply chain concerns emerge from key suppliers',      source: 'CNBC',        time: '6h ago', sentiment: 'Negative', badge: 'badge-bear',    score: -0.41 },
+            { headline: 'Apple services revenue hits new record',               source: 'MarketWatch', time: '8h ago', sentiment: 'Positive', badge: 'badge-bull',    score: 0.68 },
+            { headline: 'Regulatory pressure builds in European markets',       source: 'FT',          time: '1d ago', sentiment: 'Negative', badge: 'badge-bear',    score: -0.35 },
+            { headline: 'New product launch scheduled for next quarter',        source: 'The Verge',   time: '1d ago', sentiment: 'Neutral',  badge: 'badge-neutral', score: 0.12 }
+        ];
+        
+        const insights = [
+            { label: 'Prediction Confidence', value: '87%' },
+            { label: 'Risk Level',            value: 'Moderate' },
+            { label: 'Trend Strength',        value: 'Strong' },
+            { label: 'Feature Importance',    value: 'News + MA' },
+            { label: 'Volatility',            value: '1.24%' },
+            { label: 'Model Used',            value: 'LSTM + RF' }
+        ];
+        let watchlist = [
+            { company: 'Apple',     symbol: 'AAPL',  price: 185.24, change: 1.28,  rec: 'BUY'  },
+            { company: 'Tesla',     symbol: 'TSLA',  price: 242.18, change: -0.85, rec: 'HOLD' },
+            { company: 'Microsoft', symbol: 'MSFT',  price: 412.65, change: 2.14,  rec: 'BUY'  },
+            { company: 'NVIDIA',    symbol: 'NVDA',  price: 875.30, change: 3.42,  rec: 'BUY'  },
+            { company: 'Google',    symbol: 'GOOGL', price: 158.72, change: 0.54,  rec: 'HOLD' },
+            { company: 'Amazon',    symbol: 'AMZN',  price: 178.44, change: -1.12, rec: 'SELL' }
+        ];
+        const predictions = [
+            { company: 'Apple',     current: 185.24, predicted: 192.87, rec: 'BUY',  conf: '87%', date: '2026-07-10' },
+            { company: 'Tesla',     current: 242.18, predicted: 235.40, rec: 'HOLD', conf: '72%', date: '2026-07-10' },
+            { company: 'Microsoft', current: 412.65, predicted: 428.10, rec: 'BUY',  conf: '84%', date: '2026-07-09' },
+            { company: 'NVIDIA',    current: 875.30, predicted: 910.50, rec: 'BUY',  conf: '91%', date: '2026-07-09' },
+            { company: 'Amazon',    current: 178.44, predicted: 170.20, rec: 'SELL', conf: '68%', date: '2026-07-08' }
+        ];
+        */
+        /* ---------- Utility Functions ---------- */
+        function showSignup(){
+            document.getElementById("loginForm").style.display="none";
+            document.getElementById("signupForm").style.display="block";
+           
+            document.getElementById("signupText").style.display="block";
+            document.getElementById("loginText").style.display="none";
+            document.getElementById("authTitle").innerHTML="Create Account";
+            document.getElementById("authSubtitle").innerHTML = "Create your account to start analyzing stocks."
+            document.getElementById("authSubtitle").style.display = "none";
+            
+            
+            
+            }
+        function showLogin(){
+            document.getElementById("loginForm").style.display="block";
+            document.getElementById("signupForm").style.display="none";
+            document.getElementById("signupText").style.display="none";
+            
+            document.getElementById("authTitle").innerHTML="Sign In";
+            document.getElementById("loginText").style.display="block";
+            document.getElementById("authSubtitle").innerHTML = "Access your AI Stock dashboard."
+            document.getElementById("authSubtitle").style.display = "block";
+            }
+        function toggleProfileMenu() {
+
+    const menu = document.getElementById("profileMenu");
+
+    menu.classList.toggle("show");
+}
+
+
+
+function closeProfileMenu() {
+
+    const menu = document.getElementById("profileMenu");
+
+    menu.classList.remove("show");
+}
+
+
+async function logoutUser() {
+
+    const response = await fetch("/logout", {
+        method: "POST"
+    });
+
+    const data = await response.json();
+
+    if (data.status === "success") {
+
+        location.reload();
+
+    }
+}
+        
+
+        function focusSearch(){
+            document.getElementById("stockSearch").focus();
+        }
+        
+        function showNotification() {
+            document.getElementById("notificationPopup").style.display = "block";
+        }
+
+        function closeNotification() {
+            document.getElementById("notificationPopup").style.display = "none";
+        }
+        function recBadgeClass(rec) {
+            if (rec === 'BUY')  return 'badge-buy';
+            if (rec === 'SELL') return 'badge-sell';
+            return 'badge-hold';
+        }
+        function animateCounter(elementId, target, prefix = '$', decimals = 2) {
+            const el = document.getElementById(elementId);
+            const duration = 800;
+            const start = performance.now();
+            function tick(now) {
+                const progress = Math.min((now - start) / duration, 1);
+                const value = target * progress;
+                el.textContent = prefix + value.toFixed(decimals);
+                if (progress < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        }
+        function openAuthModal(){
+            document.getElementById("authModal").style.display="flex";
+        }
+        function closeAuthModal(){
+            document.getElementById("authModal").style.display="none";
+        }
+        window.onclick=function(event){
+            let modal=document.getElementById("authModal");
+            if(event.target===modal){
+                modal.style.display="none";
+            }
+        }
+        /* ---------- Render Functions ---------- 
+        function renderIndicators() {
+            const grid = document.getElementById('indicatorsGrid');
+            grid.innerHTML = indicators.map(i => `
+                <div class="indicator">
+                    <div class="name">${i.name}</div>
+                    <div class="val">${i.value}</div>
+                    <span class="badge ${i.badge}">${i.status}</span>
+                </div>
+            `).join('');
+        } 
+        function renderNews() {
+            const list = document.getElementById('newsList');
+            list.innerHTML = newsItems.map(n => `
+                <div class="news-item">
+                    <div class="news-content">
+                        <div class="headline">${n.headline}</div>
+                        <div class="meta">${n.source} · ${n.time}</div>
+                    </div>
+                    <div class="news-sentiment">
+                        <span class="badge ${n.badge}">${n.sentiment}</span>
+                        <div class="score">Score: ${n.score.toFixed(2)}</div>
+                    </div>
+                </div>
+            `).join('');
+        } 
+        function renderInsights() {
+            const grid = document.getElementById('insightsGrid');
+            grid.innerHTML = insights.map(i => `
+                <div class="indicator">
+                    <div class="name">${i.label}</div>
+                    <div class="val" style="font-size: 16px;">${i.value}</div>
+                </div>
+            `).join('');
+        }
+        function renderWatchlist() {
+            const body = document.getElementById('watchlistBody');
+            body.innerHTML = watchlist.map((w, index) => `
+                <tr>
+                    <td><strong>${w.company}</strong></td>
+                    <td>${w.symbol}</td>
+                    <td>$${w.price.toFixed(2)}</td>
+                    <td class="${w.change >= 0 ? 'text-green' : 'text-red'}">
+                        ${w.change >= 0 ? '+' : ''}${w.change.toFixed(2)}%
+                    </td>
+                    <td><span class="badge ${recBadgeClass(w.rec)}">${w.rec}</span></td>
+                    <td><button class="remove-btn" onclick="removeFromWatchlist(${index})">Remove</button></td>
+                </tr>
+            `).join('');
+        }
+        function renderPredictions() {
+            const body = document.getElementById('predictionsBody');
+            body.innerHTML = predictions.map(p => `
+                <tr>
+                    <td><strong>${p.company}</strong></td>
+                    <td>$${p.current.toFixed(2)}</td>
+                    <td>$${p.predicted.toFixed(2)}</td>
+                    <td><span class="badge ${recBadgeClass(p.rec)}">${p.rec}</span></td>
+                    <td>${p.conf}</td>
+                    <td>${p.date}</td>
+                </tr>
+            `).join('');
+        }
+            */
+        /* ---------- Chart Rendering (Canvas) 
+        function drawChart(range) {
+            const canvas = document.getElementById('priceChart');
+            const ctx = canvas.getContext('2d');
+            const data = prices;
+            // Handle high-DPI screens
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            const w = rect.width;
+            const h = rect.height;
+            const padding = 40;
+            ctx.clearRect(0, 0, w, h);
+            const min = Math.min(...data);
+            const max = Math.max(...data);
+            const range_v = max - min || 1;
+            const stepX = (w - padding * 2) / (data.length - 1);
+            // Grid lines
+            ctx.strokeStyle = '#f3f4f6';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const y = padding + ((h - padding * 2) / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(w - padding, y);
+                ctx.stroke();
+                const value = max - (range_v / 4) * i;
+                ctx.fillStyle = '#9ca3af';
+                ctx.font = '11px Segoe UI';
+                ctx.fillText('$' + value.toFixed(2), 4, y + 4);
+            }
+            // Area fill
+            ctx.beginPath();
+            ctx.moveTo(padding, h - padding);
+            data.forEach((v, i) => {
+                const x = padding + i * stepX;
+                const y = padding + (1 - (v - min) / range_v) * (h - padding * 2);
+                ctx.lineTo(x, y);
+            });
+            ctx.lineTo(padding + (data.length - 1) * stepX, h - padding);
+            ctx.closePath();
+            const gradient = ctx.createLinearGradient(0, 0, 0, h);
+            gradient.addColorStop(0, 'rgba(37, 99, 235, 0.25)');
+            gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            // Line
+            ctx.beginPath();
+            data.forEach((v, i) => {
+                const x = padding + i * stepX;
+                const y = padding + (1 - (v - min) / range_v) * (h - padding * 2);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+            // Points
+            data.forEach((v, i) => {
+                const x = padding + i * stepX;
+                const y = padding + (1 - (v - min) / range_v) * (h - padding * 2);
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#2563eb';
+                ctx.fill();
+            });
+        }
+            ---------- */
+
+const ctx = document.getElementById("priceChart").getContext("2d");
+
+const stockChart = new Chart(ctx, {
+
+    type: "line",
+
+    data: {
+
+        labels: dates,
+
+        datasets: [
+
+            {
+
+                label: "Closing Price",
+
+                data: prices,
+
+                borderColor: "#2563eb",
+
+                backgroundColor: "rgba(37,99,235,0.15)",
+
+                borderWidth: 3,
+
+                fill: true,
+
+                tension: 0.4,
+
+                pointRadius: 2
+
+            }
+
+        ]
+
+    },
+
+    options: {
+
+        responsive: true,
+
+        maintainAspectRatio: false,
+
+        plugins: {
+
+            legend: {
+
+                display: true
+
+            }
+
+        },
+
+        scales: {
+
+            x: {
+
+                grid: {
+
+                    display: false
+
+                }
+
+            },
+
+            y: {
+
+                beginAtZero: false
+
+            }
+
+        }
+
+    }
+
+});
+
+        /* ---------- Event Handlers ---------- */
+        function analyzeStock() {
+            const symbol = document.getElementById('stockInput').value.trim().toUpperCase();
+            if (!symbol) {
+                showNotification('Please enter a stock symbol.');
+                return;
+            }
+            const loader = document.getElementById('analyzeLoader');
+            loader.classList.add('show');
+            setTimeout(() => {
+                loader.classList.remove('show');
+                showNotification(`Analysis complete for ${symbol}`);
+               // animateCounter('currentPrice', stockData.currentPrice);
+               // animateCounter('predictedPrice', 192.87);
+            }, 1000);
+        }
+        function resetSearch() {
+            document.getElementById('stockInput').value = '';
+            document.getElementById('periodSelect').value = '1m';
+            showNotification('Search reset.');
+        }
+        function addToWatchlist() {
+            const symbol = document.getElementById('stockInput').value.trim().toUpperCase() || 'META';
+            watchlist.push({
+                company: symbol,
+                symbol: symbol,
+                price: Math.round(Math.random() * 400 + 50),
+                change: (Math.random() * 6 - 3),
+                rec: ['BUY', 'HOLD', 'SELL'][Math.floor(Math.random() * 3)]
+            });
+            renderWatchlist();
+            showNotification(`${symbol} added to watchlist.`);
+        }
+        function removeFromWatchlist(index) {
+            const removed = watchlist[index];
+            watchlist.splice(index, 1);
+            renderWatchlist();
+            showNotification(`${removed.symbol} removed from watchlist.`);
+        }
+        /*
+        function setupChartControls() {
+            const buttons = document.querySelectorAll('.chart-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    buttons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    drawChart(btn.dataset.range);
+                });
+            });
+        } */
+        /* ---------- Initialization ---------- */
+        function init() {
+            renderIndicators();
+            renderInsights();
+            renderPredictions();
+        }
+        window.addEventListener('load', init);
+        /* window.addEventListener('resize', () => {
+            const active = document.querySelector('.chart-btn.active');
+            drawChart(active ? active.dataset.range : '1m');
+        });     */
+
+        document
+            .getElementById("signupForm")
+            .addEventListener("submit",async function(e){
+            e.preventDefault();
+
+            const form=new FormData(this);
+            if(form.get("password")!=form.get("confirm")){
+            alert("Passwords do not match.");
+            return;
+            }
+
+            const res=await fetch("/register",{
+            method:"POST",
+            body:form
+            });
+
+            const data=await res.json();
+            const message = document.getElementById("signupMessage");
+
+if (data.status === "success") {
+
+    message.textContent = "Account created successfully!";
+    message.className = "auth-message success";
+
+    setTimeout(() => {
+        showLogin();
+
+        const loginMessage = document.getElementById("loginMessage");
+        loginMessage.textContent = "Account created. Please sign in.";
+        loginMessage.className = "auth-message success";
+
+    }, 1000);
+
+} else {
+
+    message.textContent = "This email is already registered.";
+    message.className = "auth-message error";
+
+}
+});
+            document
+.getElementById("loginForm")
+.addEventListener("submit",async function(e){
+
+e.preventDefault();
+
+const form=new FormData(this);
+
+const res=await fetch("/login",{
+
+method:"POST",
+
+body:form
+
+});
+
+const data=await res.json();
+
+if (data.status === "success") {
+
+    const message = document.getElementById("loginMessage");
+
+    message.textContent = "Sign in successful!";
+    message.className = "auth-message success";
+
+    setTimeout(() => {
+        location.reload();
+    }, 800);
+
+} else {
+
+    const message = document.getElementById("loginMessage");
+
+    message.textContent = "Invalid email or password. Please try again.";
+    message.className = "auth-message error";
+
+}
+
+});
+
+    </script>
+</body>
+</html>
