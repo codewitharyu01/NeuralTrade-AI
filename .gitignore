@@ -6,3 +6,5 @@ venv/
 *.db
 instance/
 .vscode/
+dataset/stock_dataset.csv
+models/stock_model.pkl
